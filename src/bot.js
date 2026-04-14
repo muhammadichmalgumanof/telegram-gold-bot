@@ -24,11 +24,11 @@ bot.use(async (ctx, next) => {
 });
 
 bot.start((ctx) => {
-    ctx.reply(`Halo 👋!\nSaya adalah Bot Harga Emas Global.\n\nBerikut fitur operasional yang bisa Anda gunakan:\n/harga - Menampilkan rincian harga emas terkini\n/hitung <gram> - Kalkulasi total saldo emas Anda\n\n⚠️ Harga yang ditampilkan adalah *harga emas internasional* yang dikonversi ke Rupiah, bukan harga resmi Antam.\n\nUntuk harga resmi Antam, kunjungi:\nhttps://www.logammulia.com/id/harga-emas-hari-ini\n\nBot ini juga akan otomatis mengirim pesan pemberitahuan kepada Anda setiap kali terdeteksi pembaruan harga!`, { parse_mode: "Markdown" });
+    ctx.reply(`Halo 👋!\nSaya adalah Bot Harga Emas Global.\n\nBerikut fitur operasional yang bisa Anda gunakan:\n/harga - Menampilkan rincian harga emas terkini\n/hitung <gram> - Kalkulasi total saldo emas Anda\n/kuota - Cek sisa jatah API harian\n\n⚠️ Harga yang ditampilkan adalah *harga emas internasional* yang dikonversi ke Rupiah, bukan harga resmi Antam.\n\nUntuk harga resmi Antam, kunjungi:\nhttps://www.logammulia.com/id/harga-emas-hari-ini\n\nBot ini juga akan otomatis mengirim pesan pemberitahuan kepada Anda setiap kali terdeteksi pembaruan harga!`, { parse_mode: "Markdown" });
 });
 
 bot.help((ctx) => {
-    ctx.reply(`🛠 <b>Daftar Fungsi Emas</b>:\n\n/harga - Menampilkan rincian harga emas 1 Gram\n/hitung &lt;angka&gt; - Kalkulasi perkiraan total saldo emas Anda\n/tes_notif - Memanggil dan mengecek siaran alarm secara instan (Admin)`, { parse_mode: "HTML" });
+    ctx.reply(`🛠 <b>Daftar Fungsi Emas</b>:\n\n/harga - Menampilkan rincian harga emas 1 Gram\n/hitung &lt;angka&gt; - Kalkulasi perkiraan total saldo emas Anda\n/kuota - Cek statistik pemakaian API GoldAPI\n/tes_notif - Memanggil dan mengecek siaran alarm secara instan (Admin)\n/stop - Menghapus akun dari langganan alarm harian`, { parse_mode: "HTML" });
 });
 
 bot.command('harga', async (ctx) => {
