@@ -7,7 +7,8 @@ let db = { subscribers: [], priceAlerts: {}, priceHistory: [], lastKnownPrice: 0
 
 if (fs.existsSync(dataFile)) {
     try {
-        db = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+        const loadedData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+        db = { ...db, ...loadedData };
     } catch (e) {
         console.error("Gagal baca data.json", e.message);
     }
