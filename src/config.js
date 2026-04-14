@@ -3,6 +3,7 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ALLOWED_CHAT_IDS = process.env.ALLOWED_CHAT_IDS || "";
+const GOLDAPI_KEY = process.env.GOLDAPI_KEY;
 
 const getAllowedIds = () => {
     return ALLOWED_CHAT_IDS.split(',').map(id => id.trim()).filter(id => id !== "");
@@ -11,5 +12,6 @@ const getAllowedIds = () => {
 module.exports = {
     PORT,
     TELEGRAM_BOT_TOKEN,
+    GOLDAPI_KEY,
     getAllowedIds
 };
