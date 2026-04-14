@@ -8,8 +8,9 @@ function startServer() {
         res.send('Bot Emas is running 24/7!');
     });
     
-    app.listen(PORT, () => {
-        console.log(`✅ Web server nyala di port ${PORT}`);
+    const IP = process.env.IP || process.env.HOST || '0.0.0.0';
+    app.listen(PORT, IP, () => {
+        console.log(`✅ Web server nyala di port ${PORT} IP ${IP}`);
     });
 }
 
