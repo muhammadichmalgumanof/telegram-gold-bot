@@ -23,7 +23,7 @@ bot.use(async (ctx, next) => {
 });
 
 bot.start((ctx) => {
-    ctx.reply(`Halo 👋!\nSaya adalah Bot Harga Emas Antam Global.\n\nBerikut fitur operasional yang bisa Anda gunakan:\n/harga - Menampilkan rincian harga emas terkini\n/hitung <gram> - Kalkulasi total saldo emas Anda\n\nBot ini juga akan otomatis mengirim pesan pemberitahuan kepada Anda setiap kali terdeteksi pembaruan harga!`);
+    ctx.reply(`Halo 👋!\nSaya adalah Bot Harga Emas Global.\n\nBerikut fitur operasional yang bisa Anda gunakan:\n/harga - Menampilkan rincian harga emas terkini\n/hitung <gram> - Kalkulasi total saldo emas Anda\n\n⚠️ Harga yang ditampilkan adalah *harga emas internasional* yang dikonversi ke Rupiah, bukan harga resmi Antam.\n\nUntuk harga resmi Antam, kunjungi:\nhttps://www.logammulia.com/id/harga-emas-hari-ini\n\nBot ini juga akan otomatis mengirim pesan pemberitahuan kepada Anda setiap kali terdeteksi pembaruan harga!`, { parse_mode: "Markdown" });
 });
 
 bot.help((ctx) => {
@@ -34,7 +34,7 @@ bot.command('harga', async (ctx) => {
     ctx.reply("🔍 Memeriksa harga terbaru...");
     const gold = await getGoldPrice();
     if (gold) {
-        ctx.reply(`📊 **Harga Emas (1 Gram) Hari Ini**:\n\n🟢 **Harga Beli Anda:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n\n🔗 *Sumber Referensi (Antam):*\n${gold.url}`, { parse_mode: "Markdown" });
+        ctx.reply(`📊 **Harga Emas (1 Gram) Hari Ini**:\n\n🟢 **Harga Beli:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n\n📌 _Harga referensi internasional (24K), bukan harga resmi Antam._\n\n🏷 **Cek Harga Resmi Antam:**\nhttps://www.logammulia.com/id/harga-emas-hari-ini`, { parse_mode: "Markdown" });
     } else {
         ctx.reply("⚠️ Gagal mengambil data harga saat ini. Coba lagi nanti.");
     }
@@ -60,7 +60,7 @@ bot.command('hitung', async (ctx) => {
 
     const totalBeli = gram * gold.beli;
     const totalJual = gram * gold.jual;
-    ctx.reply(`🧮 **Kalkulasi Nilai Emas (${gram} Gram)**\n\n🟢 **Jika Anda Beli Baru:**\n${gram} x ${formatRupiah(gold.beli)} = **${formatRupiah(totalBeli)}**\n\n🔴 **Jika Anda Jual/Buyback:**\n${gram} x ± ${formatRupiah(gold.jual)} = **${formatRupiah(totalJual)}**\n\n🔗 *Sumber data:* ${gold.url}`, { parse_mode: "Markdown" });
+    ctx.reply(`🧮 **Kalkulasi Nilai Emas (${gram} Gram)**\n\n🟢 **Jika Anda Beli Baru:**\n${gram} x ${formatRupiah(gold.beli)} = **${formatRupiah(totalBeli)}**\n\n🔴 **Jika Anda Jual/Buyback:**\n${gram} x ± ${formatRupiah(gold.jual)} = **${formatRupiah(totalJual)}**\n\n📌 _Harga referensi internasional (24K), bukan harga resmi Antam._\n\n🏷 **Cek Harga Resmi Antam:**\nhttps://www.logammulia.com/id/harga-emas-hari-ini`, { parse_mode: "Markdown" });
 });
 
 bot.command('stop', async (ctx) => {

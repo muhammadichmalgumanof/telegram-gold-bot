@@ -21,7 +21,7 @@ async function checkAndBroadcastPrice(forceBroadcast = false) {
     db.lastUpdate = new Date().toISOString();
     await saveData();
 
-    const broadcastMsg = `🔔 **Update Harga Emas Hari Ini!**\n\n🟢 **Harga Beli:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n${infoDelta}`;
+    const broadcastMsg = `🔔 **Update Harga Emas Hari Ini!**\n\n🟢 **Harga Beli:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n${infoDelta}\n\n📌 _Harga referensi internasional (24K), bukan harga resmi Antam._\n\n🏷 **Cek Harga Resmi Antam:**\nhttps://www.logammulia.com/id/harga-emas-hari-ini`;
     await broadcastToAll(broadcastMsg);
     
     return true;
