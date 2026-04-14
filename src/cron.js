@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const { getGoldPrice } = require('./scraper');
 const { getDatabase, saveData } = require('./storage');
-const { formatRupiah, getPriceDeltaInfo } = require('./utils');
+const { formatRupiah, getPriceDeltaInfo, calculateTrend } = require('./utils');
 const { broadcastToAll } = require('./bot');
 
 async function checkAndBroadcastPrice(forceBroadcast = false) {
@@ -17,11 +17,20 @@ async function checkAndBroadcastPrice(forceBroadcast = false) {
     }
 
     const infoDelta = getPriceDeltaInfo(currentPrice, db.lastKnownPrice, forceBroadcast);
+    const trendInfo = calculateTrend(db.priceHistory, currentPrice);
+
     db.lastKnownPrice = currentPrice;
     db.lastUpdate = new Date().toISOString();
+    
+    // Simpan riwayat harga (maks 7 entri terakhir)
+    db.priceHistory.push({ price: currentPrice, date: db.lastUpdate });
+    if (db.priceHistory.length > 7) {
+        db.priceHistory.shift();
+    }
+    
     await saveData();
 
-    const broadcastMsg = `🔔 **Update Harga Emas Hari Ini!**\n\n🟢 **Harga Beli:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n${infoDelta}\n\n📌 _Harga referensi internasional (24K), bukan harga resmi Antam._\n\n🏷 **Cek Harga Resmi Antam:**\nhttps://www.logammulia.com/id/harga-emas-hari-ini`;
+    const broadcastMsg = `🔔 **Update Harga Emas Hari Ini!**\n\n🟢 **Harga Beli:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n${infoDelta}${trendInfo}\n\n📌 _Harga referensi internasional (24K), bukan harga resmi Antam._\n\n🏷 **Cek Harga Resmi Antam:**\nhttps://www.logammulia.com/id/harga-emas-hari-ini`;
     await broadcastToAll(broadcastMsg);
     
     // Cek apakah ada target harga (alert) yang tercapai

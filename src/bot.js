@@ -2,7 +2,7 @@ const { Telegraf } = require('telegraf');
 const axios = require('axios');
 const { TELEGRAM_BOT_TOKEN, GOLDAPI_KEY, getAllowedIds } = require('./config');
 const { getDatabase, saveData } = require('./storage');
-const { formatRupiah } = require('./utils');
+const { formatRupiah, calculateTrend } = require('./utils');
 const { getGoldPrice } = require('./scraper');
 
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
@@ -35,7 +35,8 @@ bot.command('harga', async (ctx) => {
     ctx.reply("🔍 Memeriksa harga terbaru...");
     const gold = await getGoldPrice();
     if (gold) {
-        ctx.reply(`📊 **Harga Emas (1 Gram) Hari Ini**:\n\n🟢 **Harga Beli:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n\n📌 _Harga referensi internasional (24K), bukan harga resmi Antam._\n\n🏷 **Cek Harga Resmi Antam:**\nhttps://www.logammulia.com/id/harga-emas-hari-ini`, { parse_mode: "Markdown" });
+        const trendInfo = calculateTrend(db.priceHistory, gold.beli);
+        ctx.reply(`📊 **Harga Emas (1 Gram) Hari Ini**:\n\n🟢 **Harga Beli:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n${trendInfo}\n\n📌 _Harga referensi internasional (24K), bukan harga resmi Antam._\n\n🏷 **Cek Harga Resmi Antam:**\nhttps://www.logammulia.com/id/harga-emas-hari-ini`, { parse_mode: "Markdown" });
     } else {
         ctx.reply("⚠️ Gagal mengambil data harga saat ini. Coba lagi nanti.");
     }
