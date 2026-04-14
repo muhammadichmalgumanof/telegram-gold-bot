@@ -1,5 +1,6 @@
 const { Telegraf } = require('telegraf');
-const { TELEGRAM_BOT_TOKEN, getAllowedIds } = require('./config');
+const axios = require('axios');
+const { TELEGRAM_BOT_TOKEN, GOLDAPI_KEY, getAllowedIds } = require('./config');
 const { getDatabase, saveData } = require('./storage');
 const { formatRupiah } = require('./utils');
 const { getGoldPrice } = require('./scraper');
@@ -70,6 +71,18 @@ bot.command('stop', async (ctx) => {
         await saveData();
     }
     ctx.reply("Sesi telah diakhiri. ID Anda telah dihapus dari sistem berlangganan bot emas.\nKetikan perintah /start kembali jika Anda ingin menghidupkannya lagi.");
+});
+
+bot.command('kuota', async (ctx) => {
+    try {
+        const { data } = await axios.get('https://www.goldapi.io/api/stat', {
+            headers: { 'x-access-token': GOLDAPI_KEY }
+        });
+        ctx.reply(`📡 **Statistik Pemakaian API GoldAPI**\n\n📅 **Hari Ini:** ${data.requests_today} request\n📆 **Kemarin:** ${data.requests_yesterday} request\n🗓 **Bulan Ini:** ${data.requests_month} request\n📋 **Bulan Lalu:** ${data.requests_last_month} request\n\n⚠️ _Batas gratis: 100 request/hari_`, { parse_mode: "Markdown" });
+    } catch (err) {
+        console.error("Gagal mendapatkan status GoldAPI:", err.message);
+        ctx.reply("⚠️ Gagal mengambil data kuota API. Coba lagi nanti.");
+    }
 });
 
 async function broadcastToAll(message) {
