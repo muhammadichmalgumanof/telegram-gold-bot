@@ -24,6 +24,19 @@ async function checkAndBroadcastPrice(forceBroadcast = false) {
     const broadcastMsg = `🔔 **Update Harga Emas Hari Ini!**\n\n🟢 **Harga Beli:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n${infoDelta}\n\n📌 _Harga referensi internasional (24K), bukan harga resmi Antam._\n\n🏷 **Cek Harga Resmi Antam:**\nhttps://www.logammulia.com/id/harga-emas-hari-ini`;
     await broadcastToAll(broadcastMsg);
     
+    // Cek apakah ada target harga (alert) yang tercapai
+    const { bot } = require('./bot');
+    for (const [chatId, targetPrice] of Object.entries(db.priceAlerts)) {
+        if (currentPrice <= targetPrice) {
+            const alertMsg = `🚨 **TARGET HARGA TERCAPAI!**\n\nHarga emas saat ini (**${formatRupiah(currentPrice)}**) sudah menyentuh target Anda (**${formatRupiah(targetPrice)}**).\n\n🛒 **Waktunya beli!**`;
+            try {
+                await bot.telegram.sendMessage(chatId, alertMsg, { parse_mode: "Markdown" });
+            } catch (e) {
+                console.error(`Gagal kirim alert ke ${chatId}:`, e.message);
+            }
+        }
+    }
+    
     return true;
 }
 

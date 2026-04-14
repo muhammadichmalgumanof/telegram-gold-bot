@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const dataFile = path.join(__dirname, '..', 'data.json');
 
-let db = { subscribers: [], lastKnownPrice: 0, lastUpdate: "" };
+let db = { subscribers: [], priceAlerts: {}, lastKnownPrice: 0, lastUpdate: "" };
 
 if (fs.existsSync(dataFile)) {
     try {

@@ -24,11 +24,11 @@ bot.use(async (ctx, next) => {
 });
 
 bot.start((ctx) => {
-    ctx.reply(`Halo 👋!\nSaya adalah Bot Harga Emas Global.\n\nBerikut fitur operasional yang bisa Anda gunakan:\n/harga - Menampilkan rincian harga emas terkini\n/hitung <gram> - Kalkulasi total saldo emas Anda\n/kuota - Cek sisa jatah API harian\n\n⚠️ Harga yang ditampilkan adalah *harga emas internasional* yang dikonversi ke Rupiah, bukan harga resmi Antam.\n\nUntuk harga resmi Antam, kunjungi:\nhttps://www.logammulia.com/id/harga-emas-hari-ini\n\nBot ini juga akan otomatis mengirim pesan pemberitahuan kepada Anda setiap kali terdeteksi pembaruan harga!`, { parse_mode: "Markdown" });
+    ctx.reply(`Halo 👋!\nSaya adalah Bot Harga Emas Global.\n\nBerikut fitur operasional yang bisa Anda gunakan:\n/harga - Menampilkan rincian harga emas terkini\n/hitung <gram> - Kalkulasi total saldo emas Anda\n/alert <harga> - Setel target harga beli (notifikasi otomatis)\n/kuota - Cek sisa jatah API harian\n\n⚠️ Harga yang ditampilkan adalah *harga emas internasional* yang dikonversi ke Rupiah, bukan harga resmi Antam.\n\nUntuk harga resmi Antam, kunjungi:\nhttps://www.logammulia.com/id/harga-emas-hari-ini\n\nBot ini juga akan otomatis mengirim pesan pemberitahuan kepada Anda setiap kali terdeteksi pembaruan harga!`, { parse_mode: "Markdown" });
 });
 
 bot.help((ctx) => {
-    ctx.reply(`🛠 <b>Daftar Fungsi Emas</b>:\n\n/harga - Menampilkan rincian harga emas 1 Gram\n/hitung &lt;angka&gt; - Kalkulasi perkiraan total saldo emas Anda\n/kuota - Cek statistik pemakaian API GoldAPI\n/tes_notif - Memanggil dan mengecek siaran alarm secara instan (Admin)\n/stop - Menghapus akun dari langganan alarm harian`, { parse_mode: "HTML" });
+    ctx.reply(`🛠 <b>Daftar Fungsi Emas</b>:\n\n/harga - Menampilkan rincian harga emas 1 Gram\n/hitung &lt;angka&gt; - Kalkulasi perkiraan total saldo emas Anda\n/alert &lt;harga&gt; - Atur target harga untuk notifikasi "Waktunya Beli"\n/cek_alert - Lihat target harga yang aktif\n/hapus_alert - Hapus target harga\n/kuota - Cek statistik pemakaian API GoldAPI\n/tes_notif - Memanggil dan mengecek siaran alarm secara instan (Admin)\n/stop - Menghapus akun dari langganan alarm harian`, { parse_mode: "HTML" });
 });
 
 bot.command('harga', async (ctx) => {
@@ -82,6 +82,44 @@ bot.command('kuota', async (ctx) => {
     } catch (err) {
         console.error("Gagal mendapatkan status GoldAPI:", err.message);
         ctx.reply("⚠️ Gagal mengambil data kuota API. Coba lagi nanti.");
+    }
+});
+
+bot.command('alert', async (ctx) => {
+    const messageText = ctx.message.text;
+    const args = messageText.split(' ');
+    
+    if (args.length < 2) {
+        return ctx.reply("❌ Format Salah. Gunakan:\n`/alert <target_harga>`\nContoh: `/alert 1450000`", { parse_mode: "Markdown" });
+    }
+
+    const targetPrice = Number.parseInt(args[1].replaceAll('.', '').replaceAll(',', ''), 10);
+    if (Number.isNaN(targetPrice) || targetPrice <= 0) {
+        return ctx.reply("⚠️ Mohon masukkan angka harga yang valid.");
+    }
+
+    db.priceAlerts[ctx.chat.id.toString()] = targetPrice;
+    await saveData();
+    
+    ctx.reply(`✅ **Target Harga Dipasang!**\n\nBot akan memberi tahu Anda jika harga beli emas turun menyentuh atau berada di bawah **${formatRupiah(targetPrice)}**.\n\nHapus alert dengan /hapus_alert`, { parse_mode: "Markdown" });
+});
+
+bot.command('cek_alert', (ctx) => {
+    const target = db.priceAlerts[ctx.chat.id.toString()];
+    if (target) {
+        ctx.reply(`🔔 **Target Harga Anda:** ${formatRupiah(target)}`);
+    } else {
+        ctx.reply("❌ Anda belum memasang target harga. Gunakan /alert <harga> untuk memasang.");
+    }
+});
+
+bot.command('hapus_alert', async (ctx) => {
+    if (db.priceAlerts[ctx.chat.id.toString()]) {
+        delete db.priceAlerts[ctx.chat.id.toString()];
+        await saveData();
+        ctx.reply("🗑 Target harga berhasil dihapus.");
+    } else {
+        ctx.reply("❌ Anda tidak memiliki target harga yang aktif.");
     }
 });
 
