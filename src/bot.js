@@ -1,0 +1,88 @@
+const { Telegraf } = require('telegraf');
+const { TELEGRAM_BOT_TOKEN, getAllowedIds } = require('./config');
+const { getDatabase, saveData } = require('./storage');
+const { formatRupiah } = require('./utils');
+const { getGoldPrice } = require('./scraper');
+
+const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
+const db = getDatabase();
+const allowedIds = getAllowedIds();
+
+bot.use(async (ctx, next) => {
+    if (allowedIds.length > 0) {
+        if (!allowedIds.includes(ctx.chat.id.toString())) {
+            console.log(`⛔ Akses ditolak untuk Chat ID: ${ctx.chat.id}`);
+            return ctx.reply(`⛔ Akses Ditolak.\n\nJika Anda adalah pemilik bot ini, copy ID Chat berikut dan masukkan ke dalam ALLOWED_CHAT_IDS di file .env:\n\nID Chat Anda: ${ctx.chat.id}`);
+        }
+    }
+    if (!db.subscribers.includes(ctx.chat.id)) {
+        db.subscribers.push(ctx.chat.id);
+        await saveData();
+    }
+    return next();
+});
+
+bot.start((ctx) => {
+    ctx.reply(`Halo 👋!\nSaya adalah Bot Harga Emas Antam Global.\n\nBerikut fitur operasional yang bisa Anda gunakan:\n/harga - Menampilkan rincian harga emas terkini\n/hitung <gram> - Kalkulasi total saldo emas Anda\n\nBot ini juga akan otomatis mengirim pesan pemberitahuan kepada Anda setiap kali terdeteksi pembaruan harga!`);
+});
+
+bot.help((ctx) => {
+    ctx.reply(`🛠 <b>Daftar Fungsi Emas</b>:\n\n/harga - Menampilkan rincian harga emas 1 Gram\n/hitung &lt;angka&gt; - Kalkulasi perkiraan total saldo emas Anda\n/tes_notif - Memanggil dan mengecek siaran alarm secara instan (Admin)`, { parse_mode: "HTML" });
+});
+
+bot.command('harga', async (ctx) => {
+    ctx.reply("🔍 Memeriksa harga terbaru...");
+    const gold = await getGoldPrice();
+    if (gold) {
+        ctx.reply(`📊 **Harga Emas (1 Gram) Hari Ini**:\n\n🟢 **Harga Beli Anda:** ${formatRupiah(gold.beli)}\n🔴 **Harga Jual (Buyback):** ± ${formatRupiah(gold.jual)}\n\n🔗 *Sumber Referensi (Antam):*\n${gold.url}`, { parse_mode: "Markdown" });
+    } else {
+        ctx.reply("⚠️ Gagal mengambil data harga saat ini. Coba lagi nanti.");
+    }
+});
+
+bot.command('hitung', async (ctx) => {
+    const messageText = ctx.message.text;
+    const args = messageText.split(' ');
+    
+    if (args.length < 2) {
+        return ctx.reply("❌ Format Salah. Gunakan:\n`/hitung <jumlah_gram>`\nContoh: `/hitung 5`", { parse_mode: "Markdown" });
+    }
+
+    const gram = Number.parseFloat(args[1].replaceAll(',', '.'));
+    if (Number.isNaN(gram)) {
+        return ctx.reply("⚠️ Mohon masukkan angka yang valid untuk jumlah gram.");
+    }
+
+    const gold = await getGoldPrice();
+    if (!gold) {
+        return ctx.reply("⚠️ Gagal mengambil harga referensi saat ini. Coba lagi nanti.");
+    }
+
+    const totalBeli = gram * gold.beli;
+    const totalJual = gram * gold.jual;
+    ctx.reply(`🧮 **Kalkulasi Nilai Emas (${gram} Gram)**\n\n🟢 **Jika Anda Beli Baru:**\n${gram} x ${formatRupiah(gold.beli)} = **${formatRupiah(totalBeli)}**\n\n🔴 **Jika Anda Jual/Buyback:**\n${gram} x ± ${formatRupiah(gold.jual)} = **${formatRupiah(totalJual)}**\n\n🔗 *Sumber data:* ${gold.url}`, { parse_mode: "Markdown" });
+});
+
+bot.command('stop', async (ctx) => {
+    const index = db.subscribers.indexOf(ctx.chat.id);
+    if (index !== -1) {
+        db.subscribers.splice(index, 1);
+        await saveData();
+    }
+    ctx.reply("Sesi telah diakhiri. ID Anda telah dihapus dari sistem berlangganan bot emas.\nKetikan perintah /start kembali jika Anda ingin menghidupkannya lagi.");
+});
+
+async function broadcastToAll(message) {
+    for (const chatId of db.subscribers) {
+        try {
+            await bot.telegram.sendMessage(chatId, message, { parse_mode: "Markdown" });
+        } catch (e) {
+            console.error(`Failed to send to ${chatId}`, e.message);
+        }
+    }
+}
+
+module.exports = {
+    bot,
+    broadcastToAll
+};
